@@ -18,9 +18,11 @@ body{
   display:flex;
   justify-content:space-around;
   margin:6px 0;
+  font-size:16px;
 }
 .header div span{
   font-weight:bold;
+  font-size:16px;
 }
 
 /* Puntos grandes para todas las pantallas */
@@ -82,7 +84,7 @@ button{
   .header div span{ font-size:14px; }
   .score{ font-size:24px; }
   .score span{ font-size:32px; }
-  button#buttons-row button{ font-size:28px; padding:20px; width:90%; margin:4px auto; }
+  #buttons-row button{ font-size:28px; padding:20px; width:90%; margin:4px auto; }
   #action-row button{ font-size:18px; padding:16px; width:42%; }
 }
 @media(min-width:401px) and (max-width:767px){ /* móviles */
@@ -93,9 +95,9 @@ button{
   #action-row button{ font-size:18px; padding:14px; width:48%; }
 }
 @media(min-width:768px){ /* tablet horizontal */
-  .header div span{ font-size:20px; }
-  .score{ font-size:32px; }
-  .score span{ font-size:48px; }
+  .header div span{ font-size:18px; } /* sets y juegos más pequeños */
+  .score{ font-size:28px; }
+  .score span{ font-size:60px; } /* solo los números de puntos grandes */
   #buttons-row button{ font-size:26px; padding:22px; width:48%; }
   #action-row button{ font-size:20px; padding:18px; width:48%; }
 }
