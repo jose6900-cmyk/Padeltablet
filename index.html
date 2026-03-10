@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Marcador Pádel Pro - Ultra Responsive</title>
+<link rel="apple-touch-icon" href="icon.png">
+<style>
+body{
+  background:#000;
+  color:white;
+  font-family:-apple-system;
+  text-align:center;
+  margin:0;
+}
+
+/* Header: sets + games */
+.header{
+  display:flex;
+  justify-content:space-around;
+  margin:6px 0;
+}
+.header div span{
+  font-weight:bold;
+}
+
+/* Puntos grandes para todas las pantallas */
+.score{
+  margin:8px 0;
+}
+.score span{
+  font-weight:bold;
+  transition: transform 0.3s;
+}
+
+/* Flash efecto */
+.flash{
+  transform: scale(1.5);
+  transition: transform 0.3s;
+}
+
+/* Tabla resumen */
+.summary{
+  margin-top:12px;
+  font-size:16px;
+}
+.summary table{
+  width:90%;
+  margin:auto;
+  border-collapse: collapse;
+}
+.summary th, .summary td{
+  border:1px solid #fff;
+  padding:6px;
+  text-align:center;
+}
+
+/* Botones */
+button{
+  border-radius:14px;
+  border:none;
+  color:white;
+  font-weight:bold;
+}
+.bold{ font-weight:bold; } 
+
+/* Layout contenedores */
+#buttons-row, #action-row{
+  display:flex;
+  justify-content:space-around;
+  width:95%;
+  margin:10px auto;
+  flex-wrap:wrap;
+}
+
+/* Colores equipos */
+#a{background:#34c759;} /* verde */
+#b{background:#0055aa;} /* azul oscuro */
+.small{ background:#333; color:white; }
+
+/* Responsive sizes */
+@media(max-width:400px){ /* Apple Watch / pequeño */
+  .header div span{ font-size:14px; }
+  .score{ font-size:24px; }
+  .score span{ font-size:32px; }
+  button#buttons-row button{ font-size:28px; padding:20px; width:90%; margin:4px auto; }
+  #action-row button{ font-size:18px; padding:16px; width:42%; }
+}
+@media(min-width:401px) and (max-width:767px){ /* móviles */
+  .header div span{ font-size:16px; }
+  .score{ font-size:28px; }
+  .score span{ font-size:40px; }
+  #buttons-row button{ font-size:24px; padding:18px; width:95%; margin:4px auto; }
+  #action-row button{ font-size:18px; padding:14px; width:48%; }
+}
+@media(min-width:768px){ /* tablet horizontal */
+  .header div span{ font-size:20px; }
+  .score{ font-size:32px; }
+  .score span{ font-size:48px; }
+  #buttons-row button{ font-size:26px; padding:22px; width:48%; }
+  #action-row button{ font-size:20px; padding:18px; width:48%; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="sets">SETS: <span id="setsA">0</span> - <span id="setsB">0</span></div>
+  <div class="games">JUEGOS: <span id="gamesA">0</span> - <span id="gamesB">0</span></div>
+</div>
+
+<div class="score">PUNTOS:<br><span id="pointsA">0</span> - <span id="pointsB">0</span></div>
+
+<div class="summary" id="summary"></div>
+
+<div id="buttons-row">
+  <button id="a" onclick="point('A')">EQUIPO <span class="bold">A</span></button>
+  <button id="b" onclick="point('B')">EQUIPO <span class="bold">B</span></button>
+</div>
+
+<div id="action-row">
+  <button class="small" onclick="confirmUndo()">↩︎ Deshacer</button>
+  <button class="small" onclick="confirmReset()">🔄 Nuevo partido</button>
+</div>
+
+<script>
+let pA=0,pB=0,gA=0,gB=0,sA=0,sB=0;
+let history=[], setsHistory=[];
+const names=["0","15","30","40"];
+let matchFinished=false;
+
+function save(){ 
+  history.push([pA,pB,gA,gB,sA,sB, matchFinished, JSON.parse(JSON.stringify(setsHistory))]); 
+}
+
+function confirmUndo(){ if(confirm("Deshacer último punto?")) undo(); }
+function undo(){
+  if(history.length===0) return;
+  let h = history.pop();
+  [pA,pB,gA,gB,sA,sB, matchFinished, setsHistory] = h;
+  document.getElementById("summary").innerHTML = "";
+  matchFinished=false;
+  update();
+}
+
+function confirmReset(){
+  if(confirm("Reiniciar partido?")) {
+    if(confirm("Confirma reinicio")) reset();
+  }
+}
+function reset(){
+  pA=pB=gA=gB=sA=sB=0;
+  history=[]; setsHistory=[]; matchFinished=false;
+  document.getElementById("summary").innerHTML="";
+  update();
+}
+
+function update(flashTeam=null){
+  document.getElementById("pointsA").innerHTML = (gA==6 && gB==6)?pA:(names[pA]??pA);
+  document.getElementById("pointsB").innerHTML = (gA==6 && gB==6)?pB:(names[pB]??pB);
+  document.getElementById("gamesA").innerHTML=gA;
+  document.getElementById("gamesB").innerHTML=gB;
+  document.getElementById("setsA").innerHTML=sA;
+  document.getElementById("setsB").innerHTML=sB;
+
+  document.getElementById("pointsA").style.color="#34c759";
+  document.getElementById("pointsB").style.color="#0055aa";
+  document.getElementById("gamesA").style.color="#34c759";
+  document.getElementById("gamesB").style.color="#0055aa";
+  document.getElementById("setsA").style.color="#34c759";
+  document.getElementById("setsB").style.color="#0055aa";
+
+  if(flashTeam){
+    let el = flashTeam==="A"?document.getElementById("pointsA"):document.getElementById("pointsB");
+    el.classList.add("flash");
+    setTimeout(()=>el.classList.remove("flash"),300);
+  }
+  if(matchFinished) showSummary();
+}
+
+function winGame(team){
+  if(team=="A") gA++; else gB++;
+  pA=0;pB=0;
+  if((gA>=6||gB>=6)&&Math.abs(gA-gB)>=2) winSet(team);
+  if(gA==7||gB==7) winSet(team);
+  update();
+}
+function winSet(team){
+  setsHistory.push({A:gA,B:gB});
+  if(team=="A") sA++; else sB++;
+  gA=0; gB=0; pA=0; pB=0;
+  if(sA==2||sB==2) matchFinished=true;
+  update();
+}
+function showSummary(){
+  let winner = sA>sB?"EQUIPO A":"EQUIPO B";
+  let summaryText="<h3>🏆 Ganador: "+winner+"</h3>";
+  summaryText+="<table><tr><th>Set</th><th>A</th><th>B</th></tr>";
+  setsHistory.forEach((set,i)=>{
+    let colorA = set.A>set.B?"#34c759":"#0055aa";
+    let colorB = set.B>set.A?"#0055aa":"#34c759";
+    summaryText+="<tr><td>"+(i+1)+"</td><td style='color:"+colorA+"'>"+set.A+"</td><td style='color:"+colorB+"'>"+set.B+"</td></tr>";
+  });
+  summaryText+="</table>";
+  summaryText+="<p>Total Sets: <span style='color:#34c759'>A "+sA+"</span> - <span style='color:#0055aa'>B "+sB+"</span></p>";
+  document.getElementById("summary").innerHTML=summaryText;
+}
+
+function point(team){
+  save();
+  if(matchFinished) return;
+  if(gA==6 && gB==6){
+    if(team=="A") pA++; else pB++;
+    if((pA>=7||pB>=7)&&Math.abs(pA-pB)>=2) winGame(team);
+    update(team);
+    return;
+  }
+  if(team=="A"){ if(pA<3) pA++; else winGame("A"); }
+  else{ if(pB<3) pB++; else winGame("B"); }
+  update(team);
+}
+
+update();
+</script>
+</body>
+</html>
